@@ -6,6 +6,7 @@ import Home from './pages/home/Home';
 
 import { BrowserRouter, Route, Routes } from 'react-router-dom';
 import Cadastro from './pages/tarefa/Cadastro';
+import Login from './pages/login/Login';
 
 function App() {
   return (
@@ -16,6 +17,7 @@ function App() {
           <Route path='/' Component={() => <Home />} />
           <Route path='/calculadora' Component={Calculadora} />
           <Route path='/cadastro' Component={Cadastro} />
+          <Route path='/login' Component={() => <Login />} />
         </Routes>
       </BrowserRouter>
       <Footer />

@@ -6,7 +6,10 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 
+import com.leilao.backend.dto.PessoaAutenticacaoDTO;
 import com.leilao.backend.dto.PessoaRequisicaoDTO;
+import com.leilao.backend.model.Pessoa;
+import com.leilao.backend.repository.PessoaRepository;
 import com.leilao.backend.security.JwtService;
 
 @Service
@@ -18,10 +21,21 @@ public class AutenticacaoService {
     @Autowired
     private JwtService jwtService;
 
-    public String autenticar(PessoaRequisicaoDTO pessoa) {
+    @Autowired
+    private PessoaRepository pessoaRepository;
+
+    public PessoaAutenticacaoDTO autenticar(PessoaRequisicaoDTO pessoa) {
         Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(pessoa.getEmail(), pessoa.getSenha()));
 
-        return jwtService.generateToken(authentication.getName());
+           Pessoa pessoaBanco = pessoaRepository.findByEmail(pessoa.getEmail()).get();
+
+           PessoaAutenticacaoDTO autenticacaoDTO = new PessoaAutenticacaoDTO();
+           autenticacaoDTO.setEmail(pessoaBanco.getEmail());
+           autenticacaoDTO.setNome(pessoaBanco.getNome());
+           autenticacaoDTO.setToken(jwtService.generateToken(authentication.getName()));
+
+
+        return autenticacaoDTO;
     }
 }

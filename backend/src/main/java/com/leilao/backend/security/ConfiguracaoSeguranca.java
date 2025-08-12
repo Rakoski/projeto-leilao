@@ -46,8 +46,8 @@ public class ConfiguracaoSeguranca {
              .cors(cors -> cors.configurationSource(corsConfigurationSource()))
             .authorizeHttpRequests(authorize -> authorize
             .requestMatchers("/autenticacao/**").permitAll()
-            .requestMatchers("/categoria/**").permitAll()
-            .requestMatchers("/leilao/public").permitAll()
+            .requestMatchers("/perfil/**").permitAll()
+            .requestMatchers("/pessoa/**").permitAll()
             /* .requestMatchers("/api/pessoa/**").hasRole("ADMIN") */
                 .anyRequest().authenticated()
             )
