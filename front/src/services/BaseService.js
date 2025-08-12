@@ -23,8 +23,14 @@ async inserir(dados){
     }
 
     async buscarTodos(){
-        const resposta = await this.api.get(this.endPoint);
-        return resposta;
+        console.log("AAAA")
+        try {
+            const resposta = await this.api.get(this.endPoint);
+            return resposta;
+        } catch (error) {
+            console.log(error);
+        }
+      
     }
 
 }

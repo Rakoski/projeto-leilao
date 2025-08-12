@@ -9,6 +9,7 @@ import Cadastro from './pages/tarefa/Cadastro';
 import Login from './pages/login/Login';
 import RotaPrivadaLayout from './components/layout/RotaPrivadaLayout';
 import PadraoLayout from './components/layout/PadraoLayout';
+import Perfil from './pages/perfil/Perfil';
 
 function App() {
   return (
@@ -19,6 +20,9 @@ function App() {
           <Route element={<RotaPrivadaLayout/>}>
             <Route path='/' element={<PadraoLayout>
               <Home/>
+            </PadraoLayout>} />
+            <Route path='/perfil' element={<PadraoLayout>
+              <Perfil />
             </PadraoLayout>} />
           </Route>          
           

@@ -20,7 +20,7 @@ const Login = () => {
             const resposta = await autenticacaoService.login(usuario);
             console.log(resposta.data);
             if (resposta.status === 200 && resposta.data.token) {
-                localStorage.setItem("usuario", resposta.data);
+                localStorage.setItem("usuario", JSON.stringify(resposta.data));
                 navigate("/");
             } else {
                 alert("Erro ao fazer login");
