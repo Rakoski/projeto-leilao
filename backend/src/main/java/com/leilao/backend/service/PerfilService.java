@@ -30,7 +30,7 @@ public class PerfilService {
     public Perfil alterar(Perfil perfil) {
 
         Perfil perfilBanco = buscarPorId(perfil.getId());
-        perfilBanco.setNome(perfil.getNome());
+        perfilBanco.setTipo(perfil.getTipo());
         return perfilRepository.save(perfilBanco);
     }
 

@@ -74,4 +74,9 @@ public class PessoaService implements UserDetailsService {
                 .orElseThrow(() -> new UsernameNotFoundException("Pessoa não encontrada"));
     }
 
+    public Pessoa buscarPorEmail(String email) {
+        return pessoaRepository.findByEmail(email)
+                .orElseThrow(() -> new NaoEncontradoExcecao("Pessoa não encontrada com email: " + email));
+    }
+
 }

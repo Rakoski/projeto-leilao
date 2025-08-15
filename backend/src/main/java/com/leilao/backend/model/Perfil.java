@@ -1,15 +1,14 @@
 package com.leilao.backend.model;
 
-import org.hibernate.validator.constraints.br.CPF;
+import com.leilao.backend.enums.TipoPerfil;
 
-import jakarta.annotation.Generated;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
-import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
 
 @Entity
@@ -19,6 +18,12 @@ public class Perfil {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
-    @NotBlank(message = "{validation.name.notblank}")
-    private String nome;
+
+    @Enumerated(EnumType.STRING)
+    private TipoPerfil tipo;
+
+    // Mantendo o nome para compatibilidade com o sistema de segurança existente
+    public String getNome() {
+        return tipo != null ? tipo.name() : null;
+    }
 }
