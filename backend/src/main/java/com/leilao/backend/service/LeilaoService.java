@@ -3,6 +3,7 @@ package com.leilao.backend.service;
 import java.time.LocalDateTime;
 import java.util.List;
 
+import com.leilao.backend.dto.LeilaoDTO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -126,5 +127,21 @@ public class LeilaoService {
         if (leilao.getLanceMinimo() <= 0) {
             throw new NegocioExcecao("Lance mínimo deve ser maior que zero");
         }
+    }
+
+    public static LeilaoDTO converterParaDTO(Leilao leilao) {
+        LeilaoDTO dto = new LeilaoDTO();
+        dto.setId(leilao.getId());
+        dto.setTitulo(leilao.getTitulo());
+        dto.setDescricao(leilao.getDescricao());
+        dto.setLanceMinimo(leilao.getLanceMinimo());
+        dto.setDataHoraInicio(leilao.getDataHoraInicio());
+        dto.setDataHoraFim(leilao.getDataHoraFim());
+        dto.setStatus(leilao.getStatus());
+        dto.setValorIncremento(leilao.getValorIncremento());
+        if (leilao.getCategoria() != null) {
+            dto.setCategoriaNome(leilao.getCategoria().getNome());
+        }
+        return dto;
     }
 }

@@ -1,7 +1,9 @@
 package com.leilao.backend.controller;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
+import com.leilao.backend.dto.LeilaoDTO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -40,9 +42,12 @@ public class LeilaoController {
     private CategoriaService categoriaService;
 
     @GetMapping
-    public ResponseEntity<List<Leilao>> listar() {
+    public ResponseEntity<List<LeilaoDTO>> listar() {
         List<Leilao> leiloes = leilaoService.listarTodos();
-        return ResponseEntity.ok(leiloes);
+        List<LeilaoDTO> leioesDTO = leiloes.stream()
+                .map(LeilaoService::converterParaDTO)
+                .collect(Collectors.toList());
+        return ResponseEntity.ok(leioesDTO);
     }
 
     @GetMapping("/{id}")

@@ -1,12 +1,28 @@
 import React from "react";
-import { Navigate, Outlet } from "react-router-dom";
+import { Navigate, Outlet, useLocation } from "react-router-dom";
+import { useAuth } from "../../contexts/AuthContext";
+import { ProgressSpinner } from 'primereact/progressspinner';
 
-const RotaPrivadaLayout = () =>{
+const RotaPrivadaLayout = () => {
+    const { isAuthenticated, loading } = useAuth();
+    const location = useLocation();
 
-    const usuario = localStorage.getItem("usuario")?true:false;
+    if (loading) {
+        return (
+            <div style={{ 
+                display: 'flex', 
+                justifyContent: 'center', 
+                alignItems: 'center', 
+                minHeight: '100vh' 
+            }}>
+                <ProgressSpinner />
+            </div>
+        );
+    }
 
-    return(
-        usuario?<Outlet/>:<Navigate to="/login" replace/>
-    );
+    return isAuthenticated() ? 
+        <Outlet /> : 
+        <Navigate to="/login" state={{ from: location }} replace />;
 }
+
 export default RotaPrivadaLayout;

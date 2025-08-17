@@ -1,45 +1,124 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import './Login.css';
 import { InputText } from 'primereact/inputtext';
 import { Password } from 'primereact/password';
 import { Button } from 'primereact/button';
-import AutenticacaoService from "../../services/AutenticacaoService";
-import { useNavigate } from "react-router-dom";
+import { Message } from 'primereact/message';
+import { ProgressSpinner } from 'primereact/progressspinner';
+import { useAuth } from "../../contexts/AuthContext";
+import { useNavigate, useLocation } from "react-router-dom";
+import toast from 'react-hot-toast';
 
 const Login = () => {
-    const autenticacaoService = new AutenticacaoService();
-    const [usuario, setUsuario] = useState({ email: '', senha: '' });
+    const { login, isAuthenticated, loading } = useAuth();
+    const [credentials, setCredentials] = useState({ email: '', senha: '' });
+    const [loginLoading, setLoginLoading] = useState(false);
+    const [error, setError] = useState('');
     const navigate = useNavigate();
+    const location = useLocation();
+
+    const from = location.state?.from?.pathname || '/';
+
+    useEffect(() => {
+        if (isAuthenticated() && !loading) {
+            navigate(from, { replace: true });
+        }
+    }, [isAuthenticated, loading, navigate, from]);
 
     const handleChange = (e) => {
-        setUsuario({ ...usuario, [e.target.name]: e.target.value });
+        setCredentials({ ...credentials, [e.target.name]: e.target.value });
+        setError(''); // Limpar erro ao digitar
     }
 
-    const login = async () => {
+    const handleLogin = async () => {
+        if (!credentials.email || !credentials.senha) {
+            setError('Preencha todos os campos');
+            return;
+        }
+
+        setLoginLoading(true);
+        setError('');
+
         try {
-            const resposta = await autenticacaoService.login(usuario);
-            console.log(resposta.data);
-            if (resposta.status === 200 && resposta.data.token) {
-                localStorage.setItem("usuario", JSON.stringify(resposta.data));
-                navigate("/");
+            const result = await login(credentials);
+            
+            if (result.success) {
+                toast.success(`Bem-vindo, ${result.data.nome}!`);
+                navigate(from, { replace: true });
             } else {
-                alert("Erro ao fazer login");
+                setError(result.error);
+                toast.error(result.error);
             }
         } catch (error) {
-            console.log(error);
-            alert(error.response.data.mensagem);
+            const errorMessage = 'Erro inesperado. Tente novamente.';
+            setError(errorMessage);
+            toast.error(errorMessage);
+        } finally {
+            setLoginLoading(false);
         }
     }
 
+    const handleKeyPress = (e) => {
+        if (e.key === 'Enter') {
+            handleLogin();
+        }
+    }
+
+    if (loading) {
+        return (
+            <div className="loading-container">
+                <ProgressSpinner />
+            </div>
+        );
+    }
+
     return (
-        <div className="container">
-            <label>Email</label>
-            <InputText value={usuario.email} name="email" onChange={handleChange} />
-            <label>Senha</label>
-            <Password value={usuario.senha} name="senha" onChange={handleChange} />
-            <br />
-            <Button label="Entrar" onClick={login} />
+        <div className="login-container">
+            <div className="login-card">
+                <h2>Login</h2>
+                
+                {error && (
+                    <Message severity="error" text={error} className="login-error" />
+                )}
+                
+                <div className="field">
+                    <label htmlFor="email">Email</label>
+                    <InputText 
+                        id="email"
+                        value={credentials.email} 
+                        name="email" 
+                        onChange={handleChange}
+                        onKeyPress={handleKeyPress}
+                        disabled={loginLoading}
+                        className={error ? 'p-invalid' : ''}
+                    />
+                </div>
+                
+                <div className="field">
+                    <label htmlFor="senha">Senha</label>
+                    <Password 
+                        id="senha"
+                        value={credentials.senha} 
+                        name="senha" 
+                        onChange={handleChange}
+                        onKeyPress={handleKeyPress}
+                        disabled={loginLoading}
+                        feedback={false}
+                        toggleMask
+                        className={error ? 'p-invalid' : ''}
+                    />
+                </div>
+                
+                <Button 
+                    label={loginLoading ? 'Entrando...' : 'Entrar'} 
+                    onClick={handleLogin}
+                    disabled={loginLoading}
+                    loading={loginLoading}
+                    className="login-button"
+                />
+            </div>
         </div>
     );
 }
+
 export default Login;
