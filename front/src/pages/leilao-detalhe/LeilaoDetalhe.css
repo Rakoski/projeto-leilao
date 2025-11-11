@@ -1,0 +1,57 @@
+.leilao-detalhe {
+  min-height: calc(100vh - 120px);
+  background: #f8f9fa;
+}
+
+.leilao-detalhe__container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 1rem;
+}
+
+.leilao-detalhe__content {
+  display: grid;
+  grid-template-columns: 1fr 350px;
+  gap: 2rem;
+  margin-top: 1.5rem;
+}
+
+.leilao-detalhe__main {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.leilao-detalhe__sidebar {
+  position: sticky;
+  top: 2rem;
+  height: fit-content;
+}
+
+/* Mobile First - Responsividade */
+@media (max-width: 768px) {
+  .leilao-detalhe__container {
+    padding: 0.5rem;
+  }
+
+  .leilao-detalhe__content {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+    margin-top: 1rem;
+  }
+
+  .leilao-detalhe__sidebar {
+    position: static;
+    order: -1;
+  }
+}
+
+@media (max-width: 480px) {
+  .leilao-detalhe__container {
+    padding: 0.25rem;
+  }
+
+  .leilao-detalhe__content {
+    gap: 0.75rem;
+  }
+}

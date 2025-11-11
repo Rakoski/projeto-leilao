@@ -1,19 +1,20 @@
 package com.leilao.backend.controller;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
+import com.leilao.backend.dto.FeedbackDTO;
+import com.leilao.backend.dto.PaginaDTO;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import com.leilao.backend.model.Feedback;
 import com.leilao.backend.model.Pessoa;
@@ -33,55 +34,79 @@ public class FeedbackController {
     private PessoaService pessoaService;
 
     @GetMapping
-    public ResponseEntity<List<Feedback>> listar() {
-        List<Feedback> feedbacks = feedbackService.listarTodos();
-        return ResponseEntity.ok(feedbacks);
+    @PreAuthorize("hasAuthority('ADMIN')")
+    public ResponseEntity<PaginaDTO<FeedbackDTO>> listar(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "dataHora") String sortBy,
+            @RequestParam(defaultValue = "DESC") String sortDir) {
+
+        Sort sort = sortDir.equalsIgnoreCase("ASC") ? Sort.by(sortBy).ascending() : Sort.by(sortBy).descending();
+        Pageable pageable = PageRequest.of(page, size, sort);
+
+        Page<Feedback> pageResultado = feedbackService.listarTodosPaginado(pageable);
+        Page<FeedbackDTO> pageDTOs = pageResultado.map(feedbackService::converterParaDTO);
+
+        return ResponseEntity.ok(new PaginaDTO<>(pageDTOs));
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Feedback> buscarPorId(@PathVariable Long id) {
+    public ResponseEntity<FeedbackDTO> buscarPorId(@PathVariable Long id) {
         Feedback feedback = feedbackService.buscarPorId(id);
-        return ResponseEntity.ok(feedback);
+        return ResponseEntity.ok(feedbackService.converterParaDTO(feedback));
     }
 
     @PostMapping
-    public ResponseEntity<Feedback> criar(@Valid @RequestBody Feedback feedback, Authentication auth) {
+    public ResponseEntity<FeedbackDTO> criar(@Valid @RequestBody FeedbackDTO dto, Authentication auth) {
         Pessoa autor = pessoaService.buscarPorEmail(auth.getName());
-        feedback.setAutor(autor);
-        Feedback feedbackSalvo = feedbackService.salvar(feedback);
-        return ResponseEntity.status(HttpStatus.CREATED).body(feedbackSalvo);
+        Feedback feedbackSalvo = feedbackService.criar(dto, autor);
+        return ResponseEntity.status(HttpStatus.CREATED).body(feedbackService.converterParaDTO(feedbackSalvo));
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Feedback> atualizar(@PathVariable Long id, @Valid @RequestBody Feedback feedback) {
-        Feedback feedbackAtualizado = feedbackService.atualizar(id, feedback);
-        return ResponseEntity.ok(feedbackAtualizado);
+    public ResponseEntity<FeedbackDTO> atualizar(
+            @PathVariable Long id,
+            @Valid @RequestBody FeedbackDTO dto,
+            Authentication auth) {
+        Pessoa autor = pessoaService.buscarPorEmail(auth.getName());
+        Feedback feedbackAtualizado = feedbackService.atualizar(id, dto, autor);
+        return ResponseEntity.ok(feedbackService.converterParaDTO(feedbackAtualizado));
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deletar(@PathVariable Long id) {
-        feedbackService.deletar(id);
+    public ResponseEntity<Void> deletar(@PathVariable Long id, Authentication auth) {
+        Pessoa autor = pessoaService.buscarPorEmail(auth.getName());
+        boolean isAdmin = autor.getAuthorities().stream()
+            .anyMatch(a -> a.getAuthority().equals("ADMIN"));
+
+        feedbackService.deletar(id, autor, isAdmin);
         return ResponseEntity.noContent().build();
     }
 
     @GetMapping("/meus")
-    public ResponseEntity<List<Feedback>> buscarMeusFeedbacks(Authentication auth) {
+    public ResponseEntity<List<FeedbackDTO>> buscarMeusFeedbacks(Authentication auth) {
         Pessoa autor = pessoaService.buscarPorEmail(auth.getName());
-        List<Feedback> feedbacks = feedbackService.buscarPorAutor(autor);
+        List<FeedbackDTO> feedbacks = feedbackService.buscarPorAutor(autor).stream()
+            .map(feedbackService::converterParaDTO)
+            .collect(Collectors.toList());
         return ResponseEntity.ok(feedbacks);
     }
 
     @GetMapping("/recebidos")
-    public ResponseEntity<List<Feedback>> buscarFeedbacksRecebidos(Authentication auth) {
+    public ResponseEntity<List<FeedbackDTO>> buscarFeedbacksRecebidos(Authentication auth) {
         Pessoa destinatario = pessoaService.buscarPorEmail(auth.getName());
-        List<Feedback> feedbacks = feedbackService.buscarPorDestinatario(destinatario);
+        List<FeedbackDTO> feedbacks = feedbackService.buscarPorDestinatario(destinatario).stream()
+            .map(feedbackService::converterParaDTO)
+            .collect(Collectors.toList());
         return ResponseEntity.ok(feedbacks);
     }
 
     @GetMapping("/pessoa/{pessoaId}")
-    public ResponseEntity<List<Feedback>> buscarPorDestinatario(@PathVariable Long pessoaId) {
+    public ResponseEntity<List<FeedbackDTO>> buscarPorDestinatario(@PathVariable Long pessoaId) {
         Pessoa destinatario = pessoaService.buscarPorId(pessoaId);
-        List<Feedback> feedbacks = feedbackService.buscarPorDestinatario(destinatario);
+        List<FeedbackDTO> feedbacks = feedbackService.buscarPorDestinatario(destinatario).stream()
+            .map(feedbackService::converterParaDTO)
+            .collect(Collectors.toList());
         return ResponseEntity.ok(feedbacks);
     }
 
@@ -89,6 +114,6 @@ public class FeedbackController {
     public ResponseEntity<Double> calcularMediaNota(@PathVariable Long pessoaId) {
         Pessoa destinatario = pessoaService.buscarPorId(pessoaId);
         Double media = feedbackService.calcularMediaNota(destinatario);
-        return ResponseEntity.ok(media != null ? media : 0.0);
+        return ResponseEntity.ok(media);
     }
 }

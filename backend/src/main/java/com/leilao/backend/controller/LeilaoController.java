@@ -1,12 +1,19 @@
 package com.leilao.backend.controller;
 
+import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
-import java.util.stream.Collectors;
 
-import com.leilao.backend.dto.LeilaoDTO;
+import com.leilao.backend.dto.*;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -41,82 +48,166 @@ public class LeilaoController {
     @Autowired
     private CategoriaService categoriaService;
 
+    /**
+     * Converte string de data ISO 8601 (com ou sem timezone) para LocalDateTime
+     */
+    private LocalDateTime parseDateTime(String dateTimeStr) {
+        if (dateTimeStr == null || dateTimeStr.isEmpty()) {
+            return null;
+        }
+        try {
+            // Tenta primeiro com timezone (formato ISO 8601: 2025-11-11T01:19:57.000Z)
+            return ZonedDateTime.parse(dateTimeStr, DateTimeFormatter.ISO_DATE_TIME).toLocalDateTime();
+        } catch (Exception e) {
+            // Se falhar, tenta sem timezone (formato: 2025-11-11T01:19:57)
+            return LocalDateTime.parse(dateTimeStr, DateTimeFormatter.ISO_LOCAL_DATE_TIME);
+        }
+    }
+
     @GetMapping
     public ResponseEntity<List<LeilaoDTO>> listar() {
         List<Leilao> leiloes = leilaoService.listarTodos();
         List<LeilaoDTO> leioesDTO = leiloes.stream()
                 .map(LeilaoService::converterParaDTO)
-                .collect(Collectors.toList());
+                .toList();
         return ResponseEntity.ok(leioesDTO);
     }
 
+    @GetMapping("/filtros")
+    public ResponseEntity<PaginaDTO<LeilaoResponseDTO>> listarComFiltros(
+            @RequestParam(required = false) Long id,
+            @RequestParam(required = false) String titulo,
+            @RequestParam(required = false) StatusLeilao status,
+            @RequestParam(required = false) Long categoriaId,
+            @RequestParam(required = false) String categoriaNome,
+            @RequestParam(required = false) Long vendedorId,
+            @RequestParam(required = false) String vendedorNome,
+            @RequestParam(required = false) String dataHoraInicioFrom,
+            @RequestParam(required = false) String dataHoraInicioTo,
+            @RequestParam(required = false) String dataHoraFimFrom,
+            @RequestParam(required = false) String dataHoraFimTo,
+            @RequestParam(required = false) Float lanceMinFrom,
+            @RequestParam(required = false) Float lanceMinTo,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size,
+            @RequestParam(defaultValue = "dataHoraInicio") String sortBy,
+            @RequestParam(defaultValue = "DESC") String sortDir) {
+
+        LeilaoFilterDTO filtros = new LeilaoFilterDTO();
+        filtros.setId(id);
+        filtros.setTitulo(titulo);
+        filtros.setStatus(status);
+        filtros.setCategoriaId(categoriaId);
+        filtros.setCategoriaNome(categoriaNome);
+        filtros.setVendedorId(vendedorId);
+        filtros.setVendedorNome(vendedorNome);
+
+        // Usando método helper para parsear datas ISO 8601 com ou sem timezone
+        filtros.setDataHoraInicioFrom(parseDateTime(dataHoraInicioFrom));
+        filtros.setDataHoraInicioTo(parseDateTime(dataHoraInicioTo));
+        filtros.setDataHoraFimFrom(parseDateTime(dataHoraFimFrom));
+        filtros.setDataHoraFimTo(parseDateTime(dataHoraFimTo));
+
+        filtros.setLanceMinFrom(lanceMinFrom);
+        filtros.setLanceMinTo(lanceMinTo);
+
+        Sort sort = sortDir.equalsIgnoreCase("ASC") ? Sort.by(sortBy).ascending() : Sort.by(sortBy).descending();
+        Pageable pageable = PageRequest.of(page, size, sort);
+
+        Page<LeilaoResponseDTO> pageResultado = leilaoService.listarComFiltros(filtros, pageable);
+        PaginaDTO<LeilaoResponseDTO> resultado = new PaginaDTO<>(pageResultado);
+        return ResponseEntity.ok(resultado);
+    }
+
     @GetMapping("/{id}")
-    public ResponseEntity<Leilao> buscarPorId(@PathVariable Long id) {
+    public ResponseEntity<LeilaoResponseDTO> buscarPorId(@PathVariable Long id) {
         Leilao leilao = leilaoService.buscarPorId(id);
-        return ResponseEntity.ok(leilao);
+        LeilaoResponseDTO dto = leilaoService.converterParaResponseDTO(leilao);
+        return ResponseEntity.ok(dto);
     }
 
     @PostMapping
-    public ResponseEntity<Leilao> criar(@Valid @RequestBody Leilao leilao, Authentication auth) {
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'VENDEDOR')")
+    public ResponseEntity<LeilaoResponseDTO> criar(@Valid @RequestBody LeilaoCreateDTO dto, Authentication auth) {
         Pessoa vendedor = pessoaService.buscarPorEmail(auth.getName());
-        leilao.setVendedor(vendedor);
-        Leilao leilaoSalvo = leilaoService.salvar(leilao);
+        LeilaoResponseDTO leilaoSalvo = leilaoService.criarComDTO(dto, vendedor);
         return ResponseEntity.status(HttpStatus.CREATED).body(leilaoSalvo);
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Leilao> atualizar(@PathVariable Long id, @Valid @RequestBody Leilao leilao) {
-        Leilao leilaoAtualizado = leilaoService.atualizar(id, leilao);
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'VENDEDOR')")
+    public ResponseEntity<LeilaoResponseDTO> atualizar(@PathVariable Long id, @Valid @RequestBody LeilaoUpdateDTO dto) {
+        LeilaoResponseDTO leilaoAtualizado = leilaoService.atualizarComDTO(id, dto);
         return ResponseEntity.ok(leilaoAtualizado);
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasAuthority('ADMIN')")
     public ResponseEntity<Void> deletar(@PathVariable Long id) {
         leilaoService.deletar(id);
         return ResponseEntity.noContent().build();
     }
 
     @GetMapping("/status/{status}")
-    public ResponseEntity<List<Leilao>> buscarPorStatus(@PathVariable StatusLeilao status) {
+    public ResponseEntity<List<LeilaoResponseDTO>> buscarPorStatus(@PathVariable StatusLeilao status) {
         List<Leilao> leiloes = leilaoService.buscarPorStatus(status);
-        return ResponseEntity.ok(leiloes);
+        List<LeilaoResponseDTO> leioesDTO = leiloes.stream()
+                .map(leilaoService::converterParaResponseDTO)
+                .toList();
+        return ResponseEntity.ok(leioesDTO);
     }
 
     @GetMapping("/categoria/{categoriaId}")
-    public ResponseEntity<List<Leilao>> buscarPorCategoria(@PathVariable Long categoriaId) {
+    public ResponseEntity<List<LeilaoResponseDTO>> buscarPorCategoria(@PathVariable Long categoriaId) {
         Categoria categoria = categoriaService.buscarPorId(categoriaId);
         List<Leilao> leiloes = leilaoService.buscarPorCategoria(categoria);
-        return ResponseEntity.ok(leiloes);
+        List<LeilaoResponseDTO> leioesDTO = leiloes.stream()
+                .map(leilaoService::converterParaResponseDTO)
+                .toList();
+        return ResponseEntity.ok(leioesDTO);
     }
 
     @GetMapping("/buscar")
-    public ResponseEntity<List<Leilao>> buscarPorTitulo(@RequestParam String titulo) {
+    public ResponseEntity<List<LeilaoResponseDTO>> buscarPorTitulo(@RequestParam String titulo) {
         List<Leilao> leiloes = leilaoService.buscarPorTitulo(titulo);
-        return ResponseEntity.ok(leiloes);
+        List<LeilaoResponseDTO> leioesDTO = leiloes.stream()
+                .map(leilaoService::converterParaResponseDTO)
+                .toList();
+        return ResponseEntity.ok(leioesDTO);
     }
 
     @GetMapping("/meus")
-    public ResponseEntity<List<Leilao>> buscarMeusLeiloes(Authentication auth) {
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'VENDEDOR')")
+    public ResponseEntity<List<LeilaoResponseDTO>> buscarMeusLeiloes(Authentication auth) {
         Pessoa vendedor = pessoaService.buscarPorEmail(auth.getName());
         List<Leilao> leiloes = leilaoService.buscarPorVendedor(vendedor);
-        return ResponseEntity.ok(leiloes);
+        List<LeilaoResponseDTO> leioesDTO = leiloes.stream()
+                .map(leilaoService::converterParaResponseDTO)
+                .toList();
+        return ResponseEntity.ok(leioesDTO);
     }
 
     @PutMapping("/{id}/abrir")
-    public ResponseEntity<Leilao> abrirLeilao(@PathVariable Long id) {
+    @PreAuthorize("hasAuthority('ADMIN')")
+    public ResponseEntity<LeilaoResponseDTO> abrirLeilao(@PathVariable Long id) {
         Leilao leilao = leilaoService.abrirLeilao(id);
-        return ResponseEntity.ok(leilao);
+        LeilaoResponseDTO dto = leilaoService.converterParaResponseDTO(leilao);
+        return ResponseEntity.ok(dto);
     }
 
     @PutMapping("/{id}/encerrar")
-    public ResponseEntity<Leilao> encerrarLeilao(@PathVariable Long id) {
+    @PreAuthorize("hasAuthority('ADMIN')")
+    public ResponseEntity<LeilaoResponseDTO> encerrarLeilao(@PathVariable Long id) {
         Leilao leilao = leilaoService.encerrarLeilao(id);
-        return ResponseEntity.ok(leilao);
+        LeilaoResponseDTO dto = leilaoService.converterParaResponseDTO(leilao);
+        return ResponseEntity.ok(dto);
     }
 
     @PutMapping("/{id}/cancelar")
-    public ResponseEntity<Leilao> cancelarLeilao(@PathVariable Long id) {
+    @PreAuthorize("hasAuthority('ADMIN')")
+    public ResponseEntity<LeilaoResponseDTO> cancelarLeilao(@PathVariable Long id) {
         Leilao leilao = leilaoService.cancelarLeilao(id);
-        return ResponseEntity.ok(leilao);
+        LeilaoResponseDTO dto = leilaoService.converterParaResponseDTO(leilao);
+        return ResponseEntity.ok(dto);
     }
 }

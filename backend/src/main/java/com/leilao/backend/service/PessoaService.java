@@ -1,7 +1,7 @@
 package com.leilao.backend.service;
 
-import com.leilao.backend.dto.PessoaCriacaoDTO;
-import com.leilao.backend.dto.PessoaRespostaDTO;
+import com.leilao.backend.dto.*;
+import com.leilao.backend.exception.NegocioExcecao;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.context.annotation.Lazy;
@@ -19,6 +19,9 @@ import com.leilao.backend.exception.NaoEncontradoExcecao;
 import com.leilao.backend.model.Pessoa;
 import com.leilao.backend.repository.PessoaRepository;
 
+import java.util.Date;
+import java.util.UUID;
+
 @Service
 public class PessoaService implements UserDetailsService {
     @Autowired
@@ -35,16 +38,17 @@ public class PessoaService implements UserDetailsService {
     private PasswordEncoder passwordEncoder;
 
     public Pessoa inserir(PessoaCriacaoDTO pessoaCriacaoDTO) {
+        // Validar email único
+        if (pessoaRepository.existsByEmail(pessoaCriacaoDTO.getEmail())) {
+            throw new NegocioExcecao("Email já cadastrado no sistema");
+        }
+
         Pessoa pessoa = new Pessoa();
-        if (pessoaCriacaoDTO.getNome() != null && !pessoaCriacaoDTO.getNome().isEmpty()) {
-            pessoa.setNome(pessoaCriacaoDTO.getNome());
-        }
-        if (pessoaCriacaoDTO.getEmail() != null && !pessoaCriacaoDTO.getEmail().isEmpty()) {
-            pessoa.setEmail(pessoaCriacaoDTO.getEmail());
-        }
-        if (pessoaCriacaoDTO.getSenha() != null && !pessoaCriacaoDTO.getSenha().isEmpty()) {
-            pessoa.setSenha(passwordEncoder.encode(pessoaCriacaoDTO.getSenha()));
-        }
+        pessoa.setNome(pessoaCriacaoDTO.getNome());
+        pessoa.setEmail(pessoaCriacaoDTO.getEmail());
+        pessoa.setSenha(passwordEncoder.encode(pessoaCriacaoDTO.getSenha()));
+        pessoa.setAtivo(true);
+
         if (pessoaCriacaoDTO.getFotoPerfil() != null) {
             pessoa.setFotoPerfil(pessoaCriacaoDTO.getFotoPerfil());
         }
@@ -60,13 +64,20 @@ public class PessoaService implements UserDetailsService {
         emailService.emailTemplate(pessoa.getEmail(), "Cadastro Sucesso", context, "cadastroSucesso");
     }
 
-    public Pessoa alterar(Pessoa pessoa) {
-        Pessoa pessoaBanco = buscarPorId(pessoa.getId());
-        pessoaBanco.setNome(pessoa.getNome());
-        pessoaBanco.setEmail(pessoa.getEmail());
+    public Pessoa alterar(Long id, PessoaUpdateDTO dto) {
+        Pessoa pessoaBanco = buscarPorId(id);
 
-        if (pessoa.getSenha() != null && !pessoa.getSenha().isEmpty()) {
-            pessoaBanco.setSenha(passwordEncoder.encode(pessoa.getSenha()));
+        // Validar email único se foi alterado
+        if (!pessoaBanco.getEmail().equals(dto.getEmail()) &&
+            pessoaRepository.existsByEmail(dto.getEmail())) {
+            throw new NegocioExcecao("Email já cadastrado no sistema");
+        }
+
+        pessoaBanco.setNome(dto.getNome());
+        pessoaBanco.setEmail(dto.getEmail());
+
+        if (dto.getFotoPerfil() != null) {
+            pessoaBanco.setFotoPerfil(dto.getFotoPerfil());
         }
 
         return pessoaRepository.save(pessoaBanco);
@@ -87,6 +98,15 @@ public class PessoaService implements UserDetailsService {
         return pessoaRepository.findAll(pageable);
     }
 
+    public Page<Pessoa> buscarComFiltros(PessoaFilterDTO filtros, Pageable pageable) {
+        return pessoaRepository.findByFiltros(
+            filtros.getNome(),
+            filtros.getEmail(),
+            filtros.getAtivo(),
+            pageable
+        );
+    }
+
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
         return pessoaRepository.findByEmail(username)
@@ -101,6 +121,66 @@ public class PessoaService implements UserDetailsService {
     public boolean verificarSenha(String email, String senhaTextoClaro) {
         Pessoa pessoa = buscarPorEmail(email);
         return passwordEncoder.matches(senhaTextoClaro, pessoa.getSenha());
+    }
+
+    public void alterarSenha(String email, AlterarSenhaDTO dto) {
+        Pessoa pessoa = buscarPorEmail(email);
+
+        // Validar senha atual
+        if (!passwordEncoder.matches(dto.getSenhaAtual(), pessoa.getSenha())) {
+            throw new NegocioExcecao("Senha atual incorreta");
+        }
+
+        // Validar confirmação de senha
+        if (!dto.getNovaSenha().equals(dto.getConfirmacaoSenha())) {
+            throw new NegocioExcecao("Nova senha e confirmação não conferem");
+        }
+
+        pessoa.setSenha(passwordEncoder.encode(dto.getNovaSenha()));
+        pessoaRepository.save(pessoa);
+    }
+
+    public void solicitarRecuperacaoSenha(RecuperarSenhaDTO dto) {
+        Pessoa pessoa = buscarPorEmail(dto.getEmail());
+
+        // Gerar código de validação
+        String codigo = UUID.randomUUID().toString();
+        pessoa.setCodigoValidacao(codigo);
+
+        // Validade de 24 horas
+        Date validade = new Date(System.currentTimeMillis() + 24 * 60 * 60 * 1000);
+        pessoa.setValidadeCodigoValidacao(validade);
+
+        pessoaRepository.save(pessoa);
+
+        // Enviar email com código
+        Context context = new Context();
+        context.setVariable("nome", pessoa.getNome());
+        context.setVariable("codigo", codigo);
+        emailService.emailTemplate(pessoa.getEmail(), "Recuperação de Senha", context, "recuperacaoSenha");
+    }
+
+    public void redefinirSenha(String email, RedefinirSenhaDTO dto) {
+        Pessoa pessoa = buscarPorEmail(email);
+
+        // Validar código
+        if (pessoa.getCodigoValidacao() == null ||
+            !pessoa.getCodigoValidacao().equals(dto.getCodigoValidacao())) {
+            throw new NegocioExcecao("Código de validação inválido");
+        }
+
+        // Validar validade
+        if (pessoa.getValidadeCodigoValidacao() == null ||
+            pessoa.getValidadeCodigoValidacao().before(new Date())) {
+            throw new NegocioExcecao("Código de validação expirado");
+        }
+
+        // Redefinir senha
+        pessoa.setSenha(passwordEncoder.encode(dto.getNovaSenha()));
+        pessoa.setCodigoValidacao(null);
+        pessoa.setValidadeCodigoValidacao(null);
+
+        pessoaRepository.save(pessoa);
     }
 
     public PessoaRespostaDTO converterParaDTO(Pessoa pessoa) {

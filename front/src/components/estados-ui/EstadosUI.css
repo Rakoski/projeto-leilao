@@ -1,0 +1,127 @@
+.loading-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 3rem 1rem;
+    text-align: center;
+}
+
+.loading-state.small {
+    padding: 1rem;
+}
+
+.loading-state.large {
+    padding: 5rem 1rem;
+    min-height: 400px;
+}
+
+.loading-state p {
+    margin-top: 1rem;
+    color: var(--text-color-secondary);
+    font-size: 0.9rem;
+}
+
+.empty-state, .error-state {
+    margin: 2rem 0;
+}
+
+.empty-content, .error-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 3rem 1rem;
+}
+
+.empty-icon, .error-icon {
+    font-size: 4rem;
+    margin-bottom: 1rem;
+    opacity: 0.6;
+}
+
+.empty-icon {
+    color: var(--text-color-secondary);
+}
+
+.error-icon {
+    color: var(--red-500);
+}
+
+.empty-content h3, .error-content h3 {
+    margin: 0 0 0.5rem 0;
+    color: var(--text-color);
+    font-size: 1.5rem;
+    font-weight: 600;
+}
+
+.empty-content p, .error-content p {
+    margin: 0 0 1.5rem 0;
+    color: var(--text-color-secondary);
+    font-size: 1rem;
+    line-height: 1.5;
+    max-width: 400px;
+}
+
+.empty-actions {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.search-empty .empty-icon {
+    color: var(--primary-color);
+    opacity: 0.8;
+}
+
+/* Animações */
+.loading-state {
+    animation: fadeIn 0.3s ease-in;
+}
+
+.empty-state, .error-state {
+    animation: slideUp 0.4s ease-out;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Responsividade */
+@media (max-width: 768px) {
+    .empty-content, .error-content {
+        padding: 2rem 1rem;
+    }
+    
+    .empty-icon, .error-icon {
+        font-size: 3rem;
+    }
+    
+    .empty-content h3, .error-content h3 {
+        font-size: 1.25rem;
+    }
+    
+    .empty-actions {
+        flex-direction: column;
+        width: 100%;
+        max-width: 300px;
+    }
+}

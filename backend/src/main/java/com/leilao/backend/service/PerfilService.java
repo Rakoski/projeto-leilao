@@ -1,5 +1,7 @@
 package com.leilao.backend.service;
 
+import com.leilao.backend.dto.PerfilDTO;
+import com.leilao.backend.exception.NegocioExcecao;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.MessageSource;
 import org.springframework.context.i18n.LocaleContextHolder;
@@ -11,6 +13,8 @@ import com.leilao.backend.exception.NaoEncontradoExcecao;
 import com.leilao.backend.model.Perfil;
 import com.leilao.backend.repository.PerfilRepository;
 
+import java.util.List;
+
 @Service
 public class PerfilService {
     @Autowired
@@ -19,18 +23,28 @@ public class PerfilService {
     @Autowired
     private MessageSource messageSource;
 
-    @Autowired
-    private EmailService emailService;
+    public Perfil inserir(PerfilDTO dto) {
+        // Verificar se já existe perfil com este tipo
+        if (perfilRepository.existsByTipo(dto.getTipo())) {
+            throw new NegocioExcecao("Já existe um perfil com este tipo");
+        }
 
-    public Perfil inserir(Perfil perfil) {
-        Perfil perfilCadastrado = perfilRepository.save(perfil);
-        return perfilCadastrado;
+        Perfil perfil = new Perfil();
+        perfil.setTipo(dto.getTipo());
+
+        return perfilRepository.save(perfil);
     }
 
-    public Perfil alterar(Perfil perfil) {
+    public Perfil alterar(Long id, PerfilDTO dto) {
+        Perfil perfilBanco = buscarPorId(id);
 
-        Perfil perfilBanco = buscarPorId(perfil.getId());
-        perfilBanco.setTipo(perfil.getTipo());
+        // Verificar se o novo tipo já existe em outro perfil
+        if (!perfilBanco.getTipo().equals(dto.getTipo()) &&
+            perfilRepository.existsByTipo(dto.getTipo())) {
+            throw new NegocioExcecao("Já existe um perfil com este tipo");
+        }
+
+        perfilBanco.setTipo(dto.getTipo());
         return perfilRepository.save(perfilBanco);
     }
 
@@ -47,6 +61,17 @@ public class PerfilService {
 
     public Page<Perfil> buscarTodos(Pageable pageable) {
         return perfilRepository.findAll(pageable);
+    }
+
+    public List<Perfil> listarTodos() {
+        return perfilRepository.findAll();
+    }
+
+    public PerfilDTO converterParaDTO(Perfil perfil) {
+        PerfilDTO dto = new PerfilDTO();
+        dto.setId(perfil.getId());
+        dto.setTipo(perfil.getTipo());
+        return dto;
     }
 
 }

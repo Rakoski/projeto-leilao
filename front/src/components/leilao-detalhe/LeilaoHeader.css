@@ -1,0 +1,150 @@
+.leilao-header {
+  background: white;
+  border-radius: 12px;
+  padding: 2rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  border: 1px solid #e5e7eb;
+}
+
+.leilao-header__content {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 2rem;
+}
+
+.leilao-header__main {
+  flex: 1;
+}
+
+.leilao-header__titulo {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #1f2937;
+  margin: 0 0 1rem 0;
+  line-height: 1.2;
+}
+
+.leilao-header__meta {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.leilao-header__categoria {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #6b7280;
+  font-size: 0.95rem;
+}
+
+.leilao-header__categoria i {
+  color: #9ca3af;
+}
+
+.leilao-header__status {
+  border-radius: 20px !important;
+  padding: 0.5rem 1rem !important;
+  font-weight: 600 !important;
+  font-size: 0.875rem !important;
+}
+
+.leilao-header__status.status-aberto {
+  background: #dcfce7 !important;
+  color: #166534 !important;
+}
+
+.leilao-header__status.status-fechado {
+  background: #fef3c7 !important;
+  color: #92400e !important;
+}
+
+.leilao-header__status.status-encerrado {
+  background: #fee2e2 !important;
+  color: #991b1b !important;
+}
+
+.leilao-header__status.status-cancelado {
+  background: #f3f4f6 !important;
+  color: #374151 !important;
+}
+
+.leilao-header__status.status-aguardando {
+  background: #dbeafe !important;
+  color: #1e40af !important;
+}
+
+.leilao-header__periodo {
+  min-width: 300px;
+}
+
+.leilao-header__periodo-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1rem;
+  background: #f8fafc;
+  border-radius: 8px;
+  border-left: 4px solid #3b82f6;
+}
+
+.leilao-header__periodo-item i {
+  color: #3b82f6;
+  font-size: 1.125rem;
+}
+
+.leilao-header__periodo-label {
+  display: block;
+  font-size: 0.875rem;
+  color: #6b7280;
+  font-weight: 500;
+  margin-bottom: 0.25rem;
+}
+
+.leilao-header__periodo-valor {
+  display: block;
+  font-size: 0.95rem;
+  color: #1f2937;
+  font-weight: 600;
+}
+
+/* Mobile Responsividade */
+@media (max-width: 768px) {
+  .leilao-header {
+    padding: 1.5rem;
+  }
+
+  .leilao-header__content {
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+
+  .leilao-header__titulo {
+    font-size: 1.5rem;
+  }
+
+  .leilao-header__periodo {
+    min-width: unset;
+    width: 100%;
+  }
+
+  .leilao-header__meta {
+    gap: 0.75rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .leilao-header {
+    padding: 1rem;
+  }
+
+  .leilao-header__titulo {
+    font-size: 1.25rem;
+  }
+
+  .leilao-header__periodo-item {
+    padding: 0.75rem;
+  }
+}

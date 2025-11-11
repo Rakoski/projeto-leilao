@@ -46,9 +46,14 @@ public class ConfiguracaoSeguranca {
              .cors(cors -> cors.configurationSource(corsConfigurationSource()))
             .authorizeHttpRequests(authorize -> authorize
             .requestMatchers("/autenticacao/**").permitAll()
-            .requestMatchers("/perfil/**").permitAll()
-            .requestMatchers("/pessoa/**").permitAll()
-            /* .requestMatchers("/api/pessoa/**").hasRole("ADMIN") */
+            .requestMatchers("/pessoa", "/pessoa/recuperar-senha", "/pessoa/redefinir-senha").permitAll()
+            .requestMatchers("/uploads/**").permitAll()
+            .requestMatchers("/leiloes", "/leiloes/filtros", "/leiloes/{id}", "/leiloes/status/**",
+                            "/leiloes/categoria/**", "/leiloes/buscar").permitAll()
+            .requestMatchers("/categorias", "/categorias/lista", "/categorias/{id}",
+                            "/categorias/buscar").permitAll()
+            .requestMatchers("/feedbacks/pessoa/**").permitAll()
+            .requestMatchers("/imagens/leilao/**").permitAll()
                 .anyRequest().authenticated()
             )
             .sessionManagement(session -> session

@@ -3,8 +3,10 @@ package com.leilao.backend.service;
 import java.time.LocalDateTime;
 import java.util.List;
 
-import com.leilao.backend.dto.LeilaoDTO;
+import com.leilao.backend.dto.*;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import com.leilao.backend.enums.StatusLeilao;
@@ -20,11 +22,96 @@ public class LeilaoService {
     
     @Autowired
     private LeilaoRepository leilaoRepository;
-    
+
+    @Autowired
+    private CategoriaService categoriaService;
+
     public List<Leilao> listarTodos() {
         return leilaoRepository.findAll();
     }
-    
+
+    public Page<LeilaoResponseDTO> listarComFiltros(LeilaoFilterDTO filtros, Pageable pageable) {
+        Page<Leilao> leiloes = leilaoRepository.findWithFilters(filtros, pageable);
+        return leiloes.map(this::converterParaResponseDTO);
+    }
+
+    public LeilaoResponseDTO criarComDTO(LeilaoCreateDTO dto, Pessoa vendedor) {
+        Categoria categoria = categoriaService.buscarPorId(dto.getCategoriaId());
+
+        Leilao leilao = new Leilao();
+        leilao.setTitulo(dto.getTitulo());
+        leilao.setDescricao(dto.getDescricao());
+        leilao.setDescricaoDetalhada(dto.getDescricaoDetalhada());
+        leilao.setDataHoraInicio(dto.getDataHoraInicio());
+        leilao.setDataHoraFim(dto.getDataHoraFim());
+        leilao.setObservacao(dto.getObservacao());
+        leilao.setValorIncremento(dto.getValorIncremento());
+        leilao.setLanceMinimo(dto.getLanceMinimo());
+        leilao.setCategoria(categoria);
+        leilao.setVendedor(vendedor);
+        leilao.setStatus(StatusLeilao.EM_ANALISE);
+
+        validarDatas(leilao);
+        validarValores(leilao);
+
+        Leilao leilaoSalvo = leilaoRepository.save(leilao);
+        return converterParaResponseDTO(leilaoSalvo);
+    }
+
+    public LeilaoResponseDTO atualizarComDTO(Long id, LeilaoUpdateDTO dto) {
+        Leilao leilaoExistente = buscarPorId(id);
+
+        if (leilaoExistente.getStatus() == StatusLeilao.ENCERRADO ||
+            leilaoExistente.getStatus() == StatusLeilao.CANCELADO) {
+            throw new NegocioExcecao("Não é possível atualizar leilão encerrado ou cancelado");
+        }
+
+        Categoria categoria = categoriaService.buscarPorId(dto.getCategoriaId());
+
+        leilaoExistente.setTitulo(dto.getTitulo());
+        leilaoExistente.setDescricao(dto.getDescricao());
+        leilaoExistente.setDescricaoDetalhada(dto.getDescricaoDetalhada());
+        leilaoExistente.setDataHoraInicio(dto.getDataHoraInicio());
+        leilaoExistente.setDataHoraFim(dto.getDataHoraFim());
+        leilaoExistente.setObservacao(dto.getObservacao());
+        leilaoExistente.setValorIncremento(dto.getValorIncremento());
+        leilaoExistente.setLanceMinimo(dto.getLanceMinimo());
+        leilaoExistente.setCategoria(categoria);
+
+        validarDatas(leilaoExistente);
+        validarValores(leilaoExistente);
+
+        Leilao leilaoAtualizado = leilaoRepository.save(leilaoExistente);
+        return converterParaResponseDTO(leilaoAtualizado);
+    }
+
+    public LeilaoResponseDTO converterParaResponseDTO(Leilao leilao) {
+        LeilaoResponseDTO dto = new LeilaoResponseDTO();
+        dto.setId(leilao.getId());
+        dto.setTitulo(leilao.getTitulo());
+        dto.setDescricao(leilao.getDescricao());
+        dto.setDescricaoDetalhada(leilao.getDescricaoDetalhada());
+        dto.setDataHoraInicio(leilao.getDataHoraInicio());
+        dto.setDataHoraFim(leilao.getDataHoraFim());
+        dto.setStatus(leilao.getStatus());
+        dto.setObservacao(leilao.getObservacao());
+        dto.setValorIncremento(leilao.getValorIncremento());
+        dto.setLanceMinimo(leilao.getLanceMinimo());
+
+        if (leilao.getCategoria() != null) {
+            dto.setCategoriaId(leilao.getCategoria().getId());
+            dto.setCategoriaNome(leilao.getCategoria().getNome());
+        }
+
+        if (leilao.getVendedor() != null) {
+            dto.setVendedorId(leilao.getVendedor().getId());
+            dto.setVendedorNome(leilao.getVendedor().getNome());
+            dto.setVendedorEmail(leilao.getVendedor().getEmail());
+        }
+
+        return dto;
+    }
+
     public Leilao buscarPorId(Long id) {
         return leilaoRepository.findById(id)
                 .orElseThrow(() -> new NaoEncontradoExcecao("Leilão não encontrado"));

@@ -37,11 +37,11 @@ const Home = () => {
             
             // Carregar leilões
             const leiloesResponse = await leilaoService.buscarTodos();
-            const leiloes = leiloesResponse.data || [];
+            const leiloes = leiloesResponse.data?.content || leiloesResponse.data || [];
             
             // Carregar categorias
             const categoriasResponse = await categoriaService.buscarTodos();
-            const categorias = categoriasResponse.data || [];
+            const categorias = categoriasResponse.data?.content || categoriasResponse.data || [];
             
             // Calcular estatísticas
             const leiloesAtivos = leiloes.filter(l => l.status === 'ATIVO').length;
@@ -59,7 +59,6 @@ const Home = () => {
             // Leilões recentes (últimos 5)
             const recent = leiloes
                 .sort((a, b) => new Date(b.dataCriacao || b.dataInicio) - new Date(a.dataCriacao || a.dataInicio))
-                .slice(0, 5);
             setRecentLeiloes(recent);
             
             // Dados do gráfico
@@ -108,7 +107,7 @@ const Home = () => {
         return new Intl.NumberFormat('pt-BR', {
             style: 'currency',
             currency: 'BRL'
-        }).format(rowData.precoInicial);
+        }).format(rowData.lanceMinimo);
     };
 
     const actionBodyTemplate = (rowData) => {
