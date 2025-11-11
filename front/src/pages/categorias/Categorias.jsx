@@ -8,6 +8,7 @@ import { InputTextarea } from 'primereact/inputtextarea';
 import { Toast } from 'primereact/toast';
 import { ConfirmDialog, confirmDialog } from 'primereact/confirmdialog';
 import CategoriaService from '../../services/CategoriaService';
+import { garantirArray } from '../../utils';
 import toast from 'react-hot-toast';
 import './Categorias.css';
 
@@ -34,7 +35,9 @@ const Categorias = () => {
         setLoading(true);
         try {
             const response = await categoriaService.buscarTodos();
-            setCategorias(response.data || []);
+            // Extrair array do objeto paginado se necessário
+            const categoriasData = response.data?.content || response.data || [];
+            setCategorias(garantirArray(categoriasData));
         } catch (error) {
             toast.error('Erro ao carregar categorias');
             console.error('Erro ao carregar categorias:', error);

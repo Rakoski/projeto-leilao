@@ -1,0 +1,86 @@
+.feedback-form {
+    padding: 10px 0;
+}
+
+.leilao-info {
+    background-color: #f8f9fa;
+    padding: 15px;
+    border-radius: 6px;
+    margin-bottom: 20px;
+    border-left: 4px solid #007ad9;
+}
+
+.leilao-info h4 {
+    margin: 0 0 5px 0;
+    color: #495057;
+    font-size: 16px;
+}
+
+.leilao-info p {
+    margin: 0;
+    color: #6c757d;
+    font-size: 14px;
+}
+
+.field {
+    margin-bottom: 20px;
+}
+
+.field label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 600;
+    color: #495057;
+}
+
+.rating-container {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.rating-text {
+    color: #6c757d;
+    font-size: 14px;
+    font-style: italic;
+}
+
+.char-count {
+    display: block;
+    text-align: right;
+    margin-top: 5px;
+    color: #6c757d;
+    font-size: 12px;
+}
+
+/* Estilização do Rating */
+.p-rating .p-rating-star {
+    font-size: 1.5rem;
+    margin: 0 2px;
+}
+
+.p-rating .p-rating-star.p-rating-star-on .p-rating-icon {
+    color: #ffc107;
+}
+
+.p-rating .p-rating-star .p-rating-icon {
+    color: #dee2e6;
+}
+
+.p-rating .p-rating-star:hover .p-rating-icon {
+    color: #ffc107;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .rating-container {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+    }
+    
+    .p-rating .p-rating-star {
+        font-size: 1.2rem;
+        margin: 0 1px;
+    }
+}

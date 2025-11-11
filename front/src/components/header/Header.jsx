@@ -33,6 +33,23 @@ const Header = () => {
             command: () => navigate('/categorias')
         },
         {
+            label: 'Feedbacks',
+            icon: 'pi pi-star',
+            command: () => navigate('/feedbacks')
+        },
+        ...(user?.perfis?.includes('ADMIN') ? [
+            {
+                label: 'Pessoas',
+                icon: 'pi pi-users',
+                command: () => navigate('/pessoas')
+            },
+            {
+                label: 'Perfis',
+                icon: 'pi pi-shield',
+                command: () => navigate('/perfis')
+            }
+        ] : []),
+        {
             label: 'Perfil',
             icon: 'pi pi-user',
             command: () => navigate('/perfil')

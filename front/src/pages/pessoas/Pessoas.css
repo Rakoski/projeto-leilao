@@ -1,0 +1,184 @@
+.pessoas-container {
+    padding: 20px;
+}
+
+.filtros-card {
+    background: white;
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.filtros-content {
+    display: flex;
+    gap: 20px;
+    align-items: end;
+}
+
+.filtros-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 15px;
+    flex: 1;
+}
+
+.filtros-actions {
+    display: flex;
+    gap: 10px;
+}
+
+.field {
+    display: flex;
+    flex-direction: column;
+}
+
+.field label {
+    margin-bottom: 8px;
+    font-weight: 600;
+    color: #495057;
+}
+
+.table-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 0;
+}
+
+.header-title h2 {
+    margin: 0 0 5px 0;
+    color: #495057;
+}
+
+.total-records {
+    color: #6c757d;
+    font-size: 14px;
+}
+
+.header-actions {
+    display: flex;
+    gap: 10px;
+}
+
+.action-buttons {
+    display: flex;
+    gap: 8px;
+}
+
+.action-buttons .p-button {
+    width: 32px;
+    height: 32px;
+}
+
+.perfis-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+}
+
+.perfil-chip {
+    background-color: #e3f2fd;
+    color: #1976d2;
+}
+
+.no-perfis {
+    color: #6c757d;
+    font-style: italic;
+    font-size: 14px;
+}
+
+.form-grid {
+    display: grid;
+    gap: 20px;
+}
+
+.perfis-atuais,
+.adicionar-perfis {
+    padding: 15px 0;
+}
+
+.perfis-list,
+.perfis-disponiveis {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.perfil-item,
+.perfil-disponivel {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px;
+    border: 1px solid #e9ecef;
+    border-radius: 6px;
+    background-color: #f8f9fa;
+}
+
+.empty-perfis,
+.no-perfis-disponiveis {
+    text-align: center;
+    padding: 40px;
+    color: #6c757d;
+}
+
+.empty-perfis p,
+.no-perfis-disponiveis p {
+    margin: 10px 0 0 0;
+    font-size: 14px;
+}
+
+/* Responsive */
+@media (max-width: 992px) {
+    .filtros-content {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .filtros-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .filtros-actions {
+        justify-content: flex-end;
+    }
+}
+
+@media (max-width: 768px) {
+    .table-header {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 15px;
+    }
+    
+    .header-actions {
+        justify-content: flex-end;
+    }
+    
+    .action-buttons {
+        flex-direction: column;
+    }
+    
+    .perfis-chips {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+}
+
+@media (max-width: 576px) {
+    .pessoas-container {
+        padding: 10px;
+    }
+    
+    .filtros-card {
+        padding: 15px;
+    }
+    
+    .perfil-item,
+    .perfil-disponivel {
+        flex-direction: column;
+        gap: 10px;
+        align-items: stretch;
+    }
+}

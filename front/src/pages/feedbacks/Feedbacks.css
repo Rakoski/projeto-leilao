@@ -1,0 +1,201 @@
+.feedbacks-container {
+    padding: 20px;
+}
+
+.feedback-stats {
+    margin-bottom: 20px;
+}
+
+.stats-content {
+    display: flex;
+    gap: 40px;
+    align-items: center;
+    padding: 20px;
+}
+
+.stat-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+}
+
+.stat-label {
+    font-size: 14px;
+    color: #6c757d;
+    margin-bottom: 8px;
+}
+
+.stat-value {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.media-numero {
+    font-size: 18px;
+    font-weight: 600;
+    color: #495057;
+}
+
+.stat-number {
+    font-size: 24px;
+    font-weight: 700;
+    color: #007ad9;
+}
+
+.table-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 0;
+}
+
+.header-title h2 {
+    margin: 0 0 5px 0;
+    color: #495057;
+}
+
+.total-records {
+    color: #6c757d;
+    font-size: 14px;
+}
+
+.view-toggle {
+    display: flex;
+    gap: 10px;
+}
+
+.rating-display {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.nota-numero {
+    font-size: 14px;
+    color: #6c757d;
+    font-weight: 500;
+}
+
+.no-comment {
+    color: #6c757d;
+    font-style: italic;
+    font-size: 14px;
+}
+
+.comentario-cell {
+    max-width: 300px;
+}
+
+.comentario-preview {
+    margin: 0;
+    line-height: 1.4;
+    color: #495057;
+}
+
+.pessoa-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.pessoa-avatar {
+    background-color: #007ad9;
+    color: white;
+}
+
+.pessoa-details {
+    display: flex;
+    flex-direction: column;
+}
+
+.pessoa-nome {
+    font-weight: 600;
+    color: #495057;
+}
+
+.pessoa-email {
+    color: #6c757d;
+    font-size: 12px;
+}
+
+.leilao-info {
+    display: flex;
+    flex-direction: column;
+}
+
+.leilao-titulo {
+    font-weight: 500;
+    color: #495057;
+    margin-bottom: 4px;
+}
+
+.leilao-categoria {
+    color: #6c757d;
+    font-size: 12px;
+}
+
+/* Estilização do Rating */
+.p-rating .p-rating-star {
+    font-size: 1.2rem;
+    margin: 0 1px;
+}
+
+.p-rating .p-rating-star.p-rating-star-on .p-rating-icon {
+    color: #ffc107;
+}
+
+.p-rating .p-rating-star .p-rating-icon {
+    color: #dee2e6;
+}
+
+/* Responsive */
+@media (max-width: 992px) {
+    .table-header {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 15px;
+    }
+    
+    .view-toggle {
+        justify-content: center;
+    }
+    
+    .stats-content {
+        flex-direction: column;
+        gap: 20px;
+    }
+}
+
+@media (max-width: 768px) {
+    .pessoa-info {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+    }
+    
+    .rating-display {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 5px;
+    }
+    
+    .comentario-cell {
+        max-width: 200px;
+    }
+}
+
+@media (max-width: 576px) {
+    .feedbacks-container {
+        padding: 10px;
+    }
+    
+    .stats-content {
+        padding: 15px;
+    }
+    
+    .view-toggle {
+        flex-direction: column;
+    }
+}

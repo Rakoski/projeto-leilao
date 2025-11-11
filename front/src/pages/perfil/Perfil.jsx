@@ -11,7 +11,7 @@ import PerfilService from "../../services/PerfilService";
 
 const Perfil = () => {
     const [perfis, setPerfis] = useState([]);
-    const [perfil, setPerfil] = useState({ nome: "" });
+    const [perfil, setPerfil] = useState({ tipo: "" });
     const [dialogVisible, setDialogVisible] = useState(false);
     const [isEdit, setIsEdit] = useState(false);
     const [loading, setLoading] = useState(true);
@@ -41,7 +41,7 @@ const Perfil = () => {
     };
 
     const abrirNovo = () => {
-        setPerfil({ nome: "" });
+        setPerfil({ tipo: "" });
         setDialogVisible(true);
         setIsEdit(false);
     };
@@ -79,7 +79,7 @@ const Perfil = () => {
 
     const confirmarExclusaoPerfil = (perfil) => {
         confirmDialog({
-            message: `Remover o perfil "${perfil.nome}"?`,
+            message: `Remover o perfil "${perfil.tipo}"?`,
             header: "Confirmação",
             icon: "pi pi-exclamation-triangle",
             accept: () => excluirPerfil(perfil),
@@ -138,7 +138,7 @@ const Perfil = () => {
                 rows={10}
                 rowsPerPageOptions={[5, 10, 25]}
             >
-                <Column field="nome" header="Nome"></Column>
+                <Column field="tipo" header="tipo"></Column>
                 <Column body={actionBodyTemplate} header="Ações"></Column>
             </DataTable>
 
@@ -151,11 +151,11 @@ const Perfil = () => {
                 onHide={esconderDialog}
             >
                 <div className="field">
-                    <label htmlFor="nome">Nome: </label>
+                    <label htmlFor="tipo">tipo: </label>
                     <InputText
-                        id="nome"
-                        value={perfil.nome}
-                        onChange={(e) => setPerfil({ ...perfil, nome: e.target.value })}
+                        id="tipo"
+                        value={perfil.tipo}
+                        onChange={(e) => setPerfil({ ...perfil, tipo: e.target.value })}
                         required
                         className="w-full"
                     />

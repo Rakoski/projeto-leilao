@@ -1,0 +1,427 @@
+/* ===== CONTAINER PRINCIPAL ===== */
+.leiloes-publicos-container {
+  width: 100%;
+  min-height: 100vh;
+  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+}
+
+/* ===== HEADER ===== */
+.leiloes-header {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  padding: 2rem 0;
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.header-content h1 {
+  font-size: 2.5rem;
+  font-weight: 700;
+  margin: 0 0 0.5rem 0;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.header-content p {
+  font-size: 1.2rem;
+  margin: 0;
+  opacity: 0.9;
+}
+
+/* ===== MAIN CONTENT ===== */
+.leiloes-main {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 0 1rem 2rem;
+}
+
+/* ===== FILTROS SECTION ===== */
+.filtros-section {
+  background: white;
+  border-radius: 12px;
+  padding: 1.5rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  margin-bottom: 2rem;
+}
+
+.filtros-container .busca-container {
+  margin-bottom: 1rem;
+}
+
+.filtros-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1rem;
+  align-items: end;
+}
+
+.filtro-item label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: 600;
+  color: #374151;
+}
+
+.filtro-checkbox {
+  display: flex;
+  align-items: center;
+  padding-top: 1.5rem;
+}
+
+.field-checkbox {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.field-checkbox input[type="checkbox"] {
+  width: 1.2rem;
+  height: 1.2rem;
+  accent-color: #667eea;
+}
+
+.field-checkbox label {
+  margin: 0;
+  cursor: pointer;
+  user-select: none;
+}
+
+.filtros-actions {
+  margin-top: 1rem;
+  text-align: center;
+}
+
+/* ===== RESULTADOS SECTION ===== */
+.resultados-section {
+  background: white;
+  border-radius: 12px;
+  padding: 1.5rem;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.resultados-info {
+  margin-bottom: 1.5rem;
+  color: #6b7280;
+  font-size: 0.9rem;
+}
+
+/* ===== GRID DE LEILÕES ===== */
+.leiloes-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 2rem;
+}
+
+.leilao-card-wrapper {
+  display: flex;
+}
+
+.leilao-card {
+  width: 100%;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  overflow: hidden;
+  transition: all 0.3s ease;
+  background: white;
+}
+
+.leilao-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+  border-color: #667eea;
+}
+
+.leilao-card.encerrado {
+  opacity: 0.7;
+}
+
+.leilao-card.encerrado:hover {
+  transform: translateY(-2px);
+}
+
+/* ===== IMAGEM DO LEILÃO ===== */
+.leilao-image-container {
+  position: relative;
+  height: 200px;
+  overflow: hidden;
+}
+
+.leilao-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.3s ease;
+}
+
+.leilao-card:hover .leilao-image {
+  transform: scale(1.05);
+}
+
+.leilao-no-image {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: #f9fafb;
+  color: #9ca3af;
+  gap: 0.5rem;
+}
+
+.leilao-status-overlay {
+  position: absolute;
+  top: 0.75rem;
+  right: 0.75rem;
+}
+
+/* ===== CONTEÚDO DO CARD ===== */
+.leilao-content {
+  padding: 1.25rem;
+}
+
+.leilao-titulo {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin: 0 0 1rem 0;
+  color: #111827;
+  line-height: 1.4;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.leilao-categoria {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+  color: #6b7280;
+  font-size: 0.9rem;
+}
+
+.leilao-categoria i {
+  color: #667eea;
+}
+
+/* ===== PERÍODO DO LEILÃO ===== */
+.leilao-periodo {
+  margin-bottom: 1rem;
+  font-size: 0.85rem;
+}
+
+.periodo-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+  color: #6b7280;
+}
+
+.periodo-item i {
+  color: #667eea;
+  width: 14px;
+}
+
+.tempo-restante {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem;
+  background: linear-gradient(135deg, #fef3c7, #fed7aa);
+  border-radius: 6px;
+  margin-top: 0.5rem;
+}
+
+.tempo-restante i {
+  color: #d97706;
+}
+
+.tempo-restante .destaque {
+  font-weight: 600;
+  color: #92400e;
+}
+
+/* ===== PREÇO ===== */
+.leilao-preco {
+  margin-bottom: 1rem;
+  padding: 0.75rem;
+  background: #f8fafc;
+  border-radius: 8px;
+  border-left: 4px solid #667eea;
+}
+
+.preco-label {
+  display: block;
+  font-size: 0.85rem;
+  color: #6b7280;
+  margin-bottom: 0.25rem;
+}
+
+.preco-valor {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #059669;
+}
+
+/* ===== ESTADOS DE UI ===== */
+.empty-state,
+.error-state {
+  text-align: center;
+  padding: 3rem 1rem;
+}
+
+.empty-state h2,
+.error-state h2 {
+  margin: 1rem 0 0.5rem 0;
+  color: #374151;
+}
+
+.empty-state p,
+.error-state p {
+  color: #6b7280;
+  margin-bottom: 2rem;
+  max-width: 500px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.error-state .error-icon i {
+  color: #ef4444;
+}
+
+/* ===== PAGINAÇÃO ===== */
+.paginacao-container {
+  display: flex;
+  justify-content: center;
+  margin-top: 2rem;
+  padding-top: 2rem;
+  border-top: 1px solid #e5e7eb;
+}
+
+/* ===== RESPONSIVE DESIGN ===== */
+
+/* Tablets */
+@media (max-width: 768px) {
+  .leiloes-header {
+    padding: 2rem 0;
+  }
+  
+  .header-content h1 {
+    font-size: 2rem;
+  }
+  
+  .header-content p {
+    font-size: 1rem;
+  }
+  
+  .leiloes-main {
+    padding: 0 0.75rem 2rem;
+  }
+  
+  .filtros-section,
+  .resultados-section {
+    padding: 1rem;
+  }
+  
+  .leiloes-grid {
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1rem;
+  }
+  
+  .filtros-row {
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
+  }
+  
+  .filtro-checkbox {
+    padding-top: 0;
+  }
+}
+
+/* Mobile */
+@media (max-width: 480px) {
+  .leiloes-header {
+    padding: 1.5rem 0;
+  }
+  
+  .header-content h1 {
+    font-size: 1.75rem;
+  }
+  
+  .leiloes-main {
+    padding: 0 0.5rem 2rem;
+  }
+  
+  .leiloes-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+  
+  .leilao-card {
+    border-radius: 8px;
+  }
+  
+  .leilao-image-container {
+    height: 180px;
+  }
+  
+  .leilao-content {
+    padding: 1rem;
+  }
+  
+  .leilao-titulo {
+    font-size: 1.1rem;
+  }
+  
+  .filtros-section,
+  .resultados-section {
+    border-radius: 8px;
+    padding: 0.75rem;
+  }
+}
+
+/* ===== ACESSIBILIDADE ===== */
+@media (prefers-reduced-motion: reduce) {
+  .leilao-card {
+    transition: none;
+  }
+  
+  .leilao-image {
+    transition: none;
+  }
+  
+  .leilao-card:hover {
+    transform: none;
+  }
+  
+  .leilao-card:hover .leilao-image {
+    transform: none;
+  }
+}
+
+/* Focus styles para acessibilidade */
+.leilao-card:focus-within {
+  outline: 2px solid #667eea;
+  outline-offset: 2px;
+}
+
+.field-checkbox input:focus {
+  outline: 2px solid #667eea;
+  outline-offset: 2px;
+}
+
+/* ===== UTILITY CLASSES ===== */
+.w-full {
+  width: 100%;
+}
+
+.mb-2 {
+  margin-bottom: 0.5rem;
+}
+
+.mb-3 {
+  margin-bottom: 0.75rem;
+}
