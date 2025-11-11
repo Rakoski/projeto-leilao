@@ -2,6 +2,9 @@ import React, { useState, useEffect, useRef } from 'react';
 import { InputText } from 'primereact/inputtext';
 import { Dropdown } from 'primereact/dropdown';
 import { Button } from 'primereact/button';
+import { Calendar } from 'primereact/calendar';
+import { InputNumber } from 'primereact/inputnumber';
+import { Accordion, AccordionTab } from 'primereact/accordion';
 import { Card } from 'primereact/card';
 import { Tag } from 'primereact/tag';
 import { Paginator } from 'primereact/paginator';
@@ -17,7 +20,11 @@ import {
     getStatusDisplayText,
     obterNomeCategoria,
     formatarMensagemErro,
-    garantirArray
+    garantirArray,
+    STATUS_OPTIONS,
+    gerarOpcoesCategoria,
+    isDataValida,
+    compararDatas
 } from '../../utils';
 import './LeiloesPublicos.css';
 
@@ -28,10 +35,20 @@ const LeiloesPublicos = () => {
     const [error, setError] = useState(null);
     
     // Filtros e busca
-    const [busca, setBusca] = useState('');
-    const [categoriaSelecionada, setCategoriaSelecionada] = useState(null);
+    const [filtros, setFiltros] = useState({
+        titulo: '',
+        status: null,
+        categoriaId: null,
+        dataHoraInicioFrom: null,
+        dataHoraInicioTo: null,
+        dataHoraFimFrom: null,
+        dataHoraFimTo: null,
+        lanceMinFrom: null,
+        lanceMinTo: null
+    });
     const [ordenacao, setOrdenacao] = useState('terminaEm');
     const [mostrarEncerrados, setMostrarEncerrados] = useState(false);
+    const [filtrosAtivos, setFiltrosAtivos] = useState(0);
     
     // Paginação
     const [first, setFirst] = useState(0);
@@ -49,13 +66,23 @@ const LeiloesPublicos = () => {
         { label: 'Maior preço', value: 'maiorPreco' }
     ];
 
+    const statusOptions = STATUS_OPTIONS;
+    const categoriaOptions = gerarOpcoesCategoria(categorias);
+
     useEffect(() => {
         loadCategorias();
     }, []);
 
     useEffect(() => {
+        const ativos = Object.values(filtros).filter(value => 
+            value !== null && value !== undefined && value !== ''
+        ).length;
+        setFiltrosAtivos(ativos);
+    }, [filtros]);
+
+    useEffect(() => {
         loadLeiloes();
-    }, [busca, categoriaSelecionada, ordenacao, mostrarEncerrados, first, rows]);
+    }, [filtros, ordenacao, mostrarEncerrados, first, rows]);
 
     const loadCategorias = async () => {
         try {
@@ -73,23 +100,25 @@ const LeiloesPublicos = () => {
         setError(null);
         
         try {
-            const filtros = {
-                titulo: busca || null,
-                categoriaId: categoriaSelecionada?.id || null,
-                status: mostrarEncerrados ? null : 'ABERTO',
+            const { sortBy, sortDir } = getOrderByField();
+            const filtrosRequest = {
+                ...filtros,
+                status: mostrarEncerrados ? filtros.status : 'ABERTO',
                 page: Math.floor(first / rows),
                 size: rows,
-                sort: getOrderByField()
+                sortBy,
+                sortDir
             };
 
             // Remove filtros nulos/vazios
-            Object.keys(filtros).forEach(key => {
-                if (filtros[key] === null || filtros[key] === undefined || filtros[key] === '') {
-                    delete filtros[key];
+            Object.keys(filtrosRequest).forEach(key => {
+                const value = filtrosRequest[key];
+                if (value === null || value === undefined || value === '') {
+                    delete filtrosRequest[key];
                 }
             });
 
-            const response = await leilaoService.buscarPublicos(filtros);
+            const response = await leilaoService.buscarPublicos(filtrosRequest);
             const leiloesData = response.data?.content || response.data || [];
             
             setLeiloes(garantirArray(leiloesData));
@@ -111,25 +140,21 @@ const LeiloesPublicos = () => {
     const getOrderByField = () => {
         switch (ordenacao) {
             case 'terminaEm':
-                return 'dataHoraFim,asc';
+                return { sortBy: 'dataHoraFim', sortDir: 'ASC' };
             case 'maisRecentes':
-                return 'dataHoraInicio,desc';
+                return { sortBy: 'dataHoraInicio', sortDir: 'DESC' };
             case 'menorPreco':
-                return 'lanceMinimo,asc';
+                return { sortBy: 'lanceMinimo', sortDir: 'ASC' };
             case 'maiorPreco':
-                return 'lanceMinimo,desc';
+                return { sortBy: 'lanceMinimo', sortDir: 'DESC' };
             default:
-                return 'dataHoraFim,asc';
+                return { sortBy: 'dataHoraFim', sortDir: 'ASC' };
         }
     };
 
-    const handleBuscaChange = (e) => {
-        setBusca(e.target.value);
-        setFirst(0); // Reset pagination
-    };
-
-    const handleCategoriaChange = (e) => {
-        setCategoriaSelecionada(e.value);
+    const handleFiltroChange = (campo, valor) => {
+        const novosFiltros = { ...filtros, [campo]: valor };
+        setFiltros(novosFiltros);
         setFirst(0); // Reset pagination
     };
 
@@ -144,11 +169,34 @@ const LeiloesPublicos = () => {
     };
 
     const clearFilters = () => {
-        setBusca('');
-        setCategoriaSelecionada(null);
+        setFiltros({
+            titulo: '',
+            status: null,
+            categoriaId: null,
+            dataHoraInicioFrom: null,
+            dataHoraInicioTo: null,
+            dataHoraFimFrom: null,
+            dataHoraFimTo: null,
+            lanceMinFrom: null,
+            lanceMinTo: null
+        });
         setOrdenacao('terminaEm');
         setMostrarEncerrados(false);
         setFirst(0);
+    };
+
+    const validarIntervaloData = (dataInicio, dataFim) => {
+        if (isDataValida(dataInicio) && isDataValida(dataFim) && compararDatas(dataInicio, dataFim) >= 0) {
+            return 'A data de início deve ser anterior à data de fim';
+        }
+        return null;
+    };
+
+    const validarIntervaloValor = (valorMin, valorMax) => {
+        if (valorMin && valorMax && valorMin > valorMax) {
+            return 'O valor mínimo deve ser menor que o valor máximo';
+        }
+        return null;
     };
 
     const onPageChange = (event) => {
@@ -271,7 +319,7 @@ const LeiloesPublicos = () => {
     };
 
     const renderEmptyState = () => {
-        const hasFilters = busca || categoriaSelecionada || mostrarEncerrados;
+        const hasFilters = filtrosAtivos > 0 || mostrarEncerrados;
         
         return (
             <div className="empty-state" role="region" aria-live="polite">
@@ -328,48 +376,71 @@ const LeiloesPublicos = () => {
 
             <main className="leiloes-main">
                 <section className="filtros-section" role="search" aria-label="Filtros de busca">
-                    <div className="filtros-container">
-                        <div className="busca-container">
-                            <span className="p-input-icon-left w-full">
-                                <i className="pi pi-search" />
-                                <InputText
-                                    value={busca}
-                                    onChange={handleBuscaChange}
-                                    placeholder="Buscar por título do leilão..."
-                                    className="w-full"
-                                    aria-label="Campo de busca por título"
+                    <div className="filtros-card">
+                        <div className="filtros-header">
+                            <h3>
+                                <i className="pi pi-filter mr-2"></i>
+                                Filtros {filtrosAtivos > 0 && <span className="filtros-count">({filtrosAtivos})</span>}
+                            </h3>
+                            <div className="filtros-actions-header">
+                                <Button 
+                                    label="Limpar" 
+                                    icon="pi pi-times" 
+                                    onClick={clearFilters}
+                                    className="p-button-outlined p-button-sm"
+                                    disabled={filtrosAtivos === 0 && !mostrarEncerrados}
                                 />
-                            </span>
+                            </div>
                         </div>
 
-                        <div className="filtros-row">
-                            <div className="filtro-item">
-                                <label htmlFor="categoria-filter">Categoria:</label>
-                                <Dropdown
-                                    id="categoria-filter"
-                                    value={categoriaSelecionada}
-                                    options={categorias}
-                                    onChange={handleCategoriaChange}
-                                    optionLabel="nome"
-                                    placeholder="Todas as categorias"
-                                    className="w-full"
+                        <div className="filtros-grid">
+                            {/* Filtros básicos sempre visíveis */}
+                            <div className="field">
+                                <label htmlFor="titulo">Título do Leilão</label>
+                                <InputText 
+                                    id="titulo"
+                                    value={filtros.titulo}
+                                    onChange={(e) => handleFiltroChange('titulo', e.target.value)}
+                                    placeholder="Digite o título..."
+                                />
+                            </div>
+
+                            <div className="field">
+                                <label htmlFor="status">Status</label>
+                                <Dropdown 
+                                    id="status"
+                                    value={filtros.status}
+                                    options={statusOptions}
+                                    onChange={(e) => handleFiltroChange('status', e.value)}
+                                    placeholder="Todos os status"
                                     showClear
                                 />
                             </div>
 
-                            <div className="filtro-item">
+                            <div className="field">
+                                <label htmlFor="categoria">Categoria</label>
+                                <Dropdown 
+                                    id="categoria"
+                                    value={filtros.categoriaId}
+                                    options={categoriaOptions}
+                                    onChange={(e) => handleFiltroChange('categoriaId', e.value)}
+                                    placeholder="Todas as categorias"
+                                    showClear
+                                />
+                            </div>
+
+                            <div className="field">
                                 <label htmlFor="ordenacao-filter">Ordenar por:</label>
                                 <Dropdown
                                     id="ordenacao-filter"
                                     value={ordenacao}
                                     options={ordenacaoOptions}
                                     onChange={handleOrdenacaoChange}
-                                    className="w-full"
                                 />
                             </div>
 
-                            <div className="filtro-item filtro-checkbox">
-                                <div className="field-checkbox">
+                            <div className="field field-checkbox">
+                                <div className="checkbox-container">
                                     <input
                                         id="mostrar-encerrados"
                                         type="checkbox"
@@ -384,16 +455,113 @@ const LeiloesPublicos = () => {
                             </div>
                         </div>
 
-                        {(busca || categoriaSelecionada || mostrarEncerrados) && (
-                            <div className="filtros-actions">
-                                <Button
-                                    label="Limpar filtros"
-                                    icon="pi pi-filter-slash"
-                                    className="p-button-outlined p-button-sm"
-                                    onClick={clearFilters}
-                                />
-                            </div>
-                        )}
+                        {/* Filtros avançados em accordion */}
+                        <Accordion className="filtros-avancados">
+                            <AccordionTab header="Filtros Avançados">
+                                <div className="filtros-grid">
+                                    <div className="field-group">
+                                        <h4>Período de Início do Leilão</h4>
+                                        <div className="field-row">
+                                            <div className="field">
+                                                <label htmlFor="dataInicioFrom">De</label>
+                                                <Calendar 
+                                                    id="dataInicioFrom"
+                                                    value={filtros.dataHoraInicioFrom}
+                                                    onChange={(e) => handleFiltroChange('dataHoraInicioFrom', e.value)}
+                                                    showTime
+                                                    dateFormat="dd/mm/yy"
+                                                    placeholder="Data início"
+                                                />
+                                            </div>
+                                            <div className="field">
+                                                <label htmlFor="dataInicioTo">Até</label>
+                                                <Calendar 
+                                                    id="dataInicioTo"
+                                                    value={filtros.dataHoraInicioTo}
+                                                    onChange={(e) => handleFiltroChange('dataHoraInicioTo', e.value)}
+                                                    showTime
+                                                    dateFormat="dd/mm/yy"
+                                                    placeholder="Data fim"
+                                                />
+                                            </div>
+                                        </div>
+                                        {validarIntervaloData(filtros.dataHoraInicioFrom, filtros.dataHoraInicioTo) && (
+                                            <small className="p-error">
+                                                {validarIntervaloData(filtros.dataHoraInicioFrom, filtros.dataHoraInicioTo)}
+                                            </small>
+                                        )}
+                                    </div>
+
+                                    <div className="field-group">
+                                        <h4>Período de Fim do Leilão</h4>
+                                        <div className="field-row">
+                                            <div className="field">
+                                                <label htmlFor="dataFimFrom">De</label>
+                                                <Calendar 
+                                                    id="dataFimFrom"
+                                                    value={filtros.dataHoraFimFrom}
+                                                    onChange={(e) => handleFiltroChange('dataHoraFimFrom', e.value)}
+                                                    showTime
+                                                    dateFormat="dd/mm/yy"
+                                                    placeholder="Data início"
+                                                />
+                                            </div>
+                                            <div className="field">
+                                                <label htmlFor="dataFimTo">Até</label>
+                                                <Calendar 
+                                                    id="dataFimTo"
+                                                    value={filtros.dataHoraFimTo}
+                                                    onChange={(e) => handleFiltroChange('dataHoraFimTo', e.value)}
+                                                    showTime
+                                                    dateFormat="dd/mm/yy"
+                                                    placeholder="Data fim"
+                                                />
+                                            </div>
+                                        </div>
+                                        {validarIntervaloData(filtros.dataHoraFimFrom, filtros.dataHoraFimTo) && (
+                                            <small className="p-error">
+                                                {validarIntervaloData(filtros.dataHoraFimFrom, filtros.dataHoraFimTo)}
+                                            </small>
+                                        )}
+                                    </div>
+
+                                    <div className="field-group">
+                                        <h4>Faixa de Lance Mínimo</h4>
+                                        <div className="field-row">
+                                            <div className="field">
+                                                <label htmlFor="lanceMinFrom">Valor Mínimo</label>
+                                                <InputNumber 
+                                                    id="lanceMinFrom"
+                                                    value={filtros.lanceMinFrom}
+                                                    onValueChange={(e) => handleFiltroChange('lanceMinFrom', e.value)}
+                                                    mode="currency"
+                                                    currency="BRL"
+                                                    locale="pt-BR"
+                                                    placeholder="R$ 0,00"
+                                                />
+                                            </div>
+                                            <div className="field">
+                                                <label htmlFor="lanceMinTo">Valor Máximo</label>
+                                                <InputNumber 
+                                                    id="lanceMinTo"
+                                                    value={filtros.lanceMinTo}
+                                                    onValueChange={(e) => handleFiltroChange('lanceMinTo', e.value)}
+                                                    mode="currency"
+                                                    currency="BRL"
+                                                    locale="pt-BR"
+                                                    placeholder="R$ 0,00"
+                                                />
+                                            </div>
+                                        </div>
+                                        {validarIntervaloValor(filtros.lanceMinFrom, filtros.lanceMinTo) && (
+                                            <small className="p-error">
+                                                {validarIntervaloValor(filtros.lanceMinFrom, filtros.lanceMinTo)}
+                                            </small>
+                                        )}
+                                    </div>
+                                </div>
+                            </AccordionTab>
+                        </Accordion>
                     </div>
                 </section>
 

@@ -43,7 +43,7 @@ class CategoriaService extends BaseService {
 
     // Método público (sem autenticação)
     async buscarPublicas() {
-        const response = await fetch(`${this.api.defaults.baseURL}/leiloes`, {
+        const response = await fetch(`${this.api.defaults.baseURL}${this.endPoint}/publicas`, {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json',

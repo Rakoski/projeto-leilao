@@ -88,6 +88,10 @@ class LeilaoService extends BaseService {
             if (value !== null && value !== undefined && value !== '') {
                 if (value instanceof Date) {
                     params.append(key, value.toISOString());
+                } else if (key === 'categoriaId' && typeof value === 'object' && value.id) {
+                    params.append(key, value.id);
+                } else if (typeof value === 'object' && value.id) {
+                    params.append(key, value.id);
                 } else {
                     params.append(key, value);
                 }
@@ -95,9 +99,9 @@ class LeilaoService extends BaseService {
         });
 
         const queryString = params.toString();
+        const url = queryString ? `${this.endPoint}/filtros?${queryString}` : this.endPoint;
         
-        // Faz a requisição sem o cabeçalho de autorização
-        const response = await fetch(`${this.api.defaults.baseURL}/leiloes`, {
+        const response = await fetch(`${this.api.defaults.baseURL}${url}`, {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json',
@@ -113,7 +117,7 @@ class LeilaoService extends BaseService {
     }
 
     async buscarPublicoPorId(id) {
-        const response = await fetch(`${this.api.defaults.baseURL}${this.endPoint}/publicos/${id}`, {
+        const response = await fetch(`${this.api.defaults.baseURL}${this.endPoint}/${id}`, {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json',
